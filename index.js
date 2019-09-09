@@ -1,14 +1,18 @@
 require('dotenv').config();
 const express = require('express');
 
-const app = express();
+const { solvePuzzle } = require('./solvePuzzle')
 
+const app = express();
 app.listen(process.env.PORT, () => console.log(`app listening on port ${process.env.PORT}!`));
 
 app.get('/', (req, res) => {
   const responses = {
     'Ping': 'OK',
-    'Puzzle': 'test',
+    'Puzzle': (description) => {
+      const puzzleStr = description.slice(description.indexOf('\n') + 1)
+      return solvePuzzle(puzzleStr)
+    },
     'Email Address': 'paabrown@gmail.com',
     'Source': [
       'https://github.com/paabrown/puzzle-server. \nThe part I\'m currently most',
@@ -25,7 +29,12 @@ app.get('/', (req, res) => {
     'Status': 'I am a US Citizen and can provide proof of such!',
   }
 
-  const { q } = req.query
+  const { q, d } = req.query
   const response = responses[q]
-  res.send(response);
+  if (typeof response === 'string') {
+    res.send(response)
+  } else {
+    const result = response(d)
+    res.send(result)
+  }
 })
